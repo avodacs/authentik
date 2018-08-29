@@ -133,8 +133,63 @@ class Authentik {
     });
   }
 
-  verify() {
+  /**
+   * Express middleware to provide authentication
+   *
+   * @param {*} req
+   * @param {*} res
+   * @param {*} next
+   * @returns
+   * @memberof Authentik
+   */
+  verify(req, res, next) {
+    debug('verifying token');
 
+    console.dir(this);
+
+    // let self = this;
+
+    let authorization = req.headers.authorization;
+
+    if (authorization === undefined) {
+      debug('authorization token does not exist');
+
+      return res.status(401).json({
+        message: 'Authorization failed'
+      });
+    }
+
+    debug('splitting token into type, token');
+    let [type, token] = authorization.split(' ');
+
+    if (type === 'Bearer' && token !== undefined) {
+      debug('token exists, checking for validity');
+
+      jwt.verify(token, this.secret, (err, decodedToken) => {
+        if (err) {
+          switch (err.name) {
+            case 'TokenExpiredError':
+              return res.status(401).json({
+                message: 'Token is expired'
+              });
+              break;
+            default:
+              return res.status(401).json({
+                message: 'Authorization failed'
+              });
+              break;
+          }
+        } else {
+          debug('authorization succeeded');
+          // embed token details in request
+          req.authentik = {
+            decodedToken
+          };
+
+          return next();
+        }
+      });
+    }
   }
 }
 
