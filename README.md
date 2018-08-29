@@ -15,11 +15,10 @@ https://www.npmjs.com/package/jsonwebtoken
 ### Built in basic username, password authentication
 
 ```js
-let Authentik = require('authentik');
+let authentik = require('authentik');
 
 (async () => {
-  // TODO: Store sensitive information elsewhere, like ENV
-  let auth = new Authentik(
+  authentik.config(
     'my-secret-token',        // JWT Secret
     {
       basicAuth: {            // Basic authentication provided by Authentik
@@ -32,7 +31,7 @@ let Authentik = require('authentik');
     }
   );
 
-  let authenticated = await auth.login('admin', 'password');
+  let authenticated = await authentik.login('admin', 'password');
 })();
 ```
 
@@ -62,17 +61,7 @@ The default authentication method provides very basic username and password matc
 let Authentik = require('authentik');
 
 (async () => {
-  // TODO: Store sensitive information elsewhere, like ENV
-  let auth = new Authentik(
-    'my-secret-token',        // JWT Secret
-    {
-      jwtOptions: {           // jsonwebtoken options
-        expiresIn: '1h'
-      }
-    }
-  );
-
-  auth.authenticate = (sharedSecret) => {
+  const customAuth = (sharedSecret) => {
     return new Promise((resolve, reject) => {
       if (sharedSecret === 'lorem') {
         let data = {
@@ -95,7 +84,17 @@ let Authentik = require('authentik');
     });
   };
 
-  let authenticated = await auth.login('admin', 'password');
+  authentik.config(
+    'my-secret-token',        // JWT Secret
+    {
+      jwtOptions: {           // jsonwebtoken options
+        expiresIn: '1h'
+      },
+      customAuthenticationFunction: customAuth
+    }
+  );
+
+  let authenticated = await authentik.login('lorem');
 })();
 ```
 
@@ -124,4 +123,3 @@ If unsuccessful, the response is:
 ## TODO
 
 * Full testing
-* Express.js verification middleware
