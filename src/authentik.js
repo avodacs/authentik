@@ -196,6 +196,12 @@ const verify = (req, res, next) => {
         return next();
       }
     });
+  } else {
+    debug('authorization failed');
+
+    return res.status(401).json({
+      message: 'Authorization failed'
+    });
   }
 };
 

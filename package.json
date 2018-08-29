@@ -1,6 +1,6 @@
 {
   "name": "authentik",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Express.js JWT authentication middleware",
   "main": "index.js",
   "repository": {
