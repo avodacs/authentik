@@ -12,7 +12,9 @@ https://www.npmjs.com/package/jsonwebtoken
 
 ## Examples
 
-### Built in basic username, password authentication
+### Creating token
+
+#### Built in basic username, password authentication
 
 ```js
 let authentik = require('authentik');
@@ -53,7 +55,7 @@ If unsuccessful, the response is:
 }
 ```
 
-### Override authentication method
+#### Override authentication method
 
 The default authentication method provides very basic username and password matching.  If you want to extend `Authentik` to work with your own authentication mechanism, you can override the `authenticate` method:
 
@@ -114,6 +116,51 @@ If unsuccessful, the response is:
   err: 'Total failure',
   token: null
 }
+```
+
+### Verifying token
+
+Include the `authentik.verify` middleware in your route to handle authentication.  If the authentication is invalid, express will return a `401` response.
+
+```
+app.get('/protected', authentik.verify, (req, res) => {}
+```
+
+The decoded token is available in the request as `req.authentik`.
+
+```js
+const authentik = require('authentik');
+const express = require('express');
+
+const app = express();
+
+authentik.config(
+  'my-secret-token',        // JWT Secret
+  {
+    basicAuth: {            // Basic authentication provided by Authentik
+      username: 'admin',    // Expected Username
+      password: 'password'  // Expected Password
+    },
+    jwtOptions: {           // jsonwebtoken options
+      expiresIn: '1h'
+    }
+  }
+);
+
+app.post('/login', async (req, res) => {
+  // TODO: In real life, get this from the body
+  let authed = await authentik.login('admin', 'password');
+
+  res.json(authed);
+});
+
+app.get('/protected', authentik.verify, (req, res) => {
+  res.json(req.authentik);
+})
+
+app.listen(3000, () => {
+  console.log('app listening on 3000');
+})
 ```
 
 ## Debugging
